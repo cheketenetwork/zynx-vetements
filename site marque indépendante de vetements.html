@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XXXX</title>
+<style>
+  :root{
+    --bg:#F2F2F0;
+    --fg:#111111;
+    --card:#FFFFFF;
+    --muted:#6B6B6B;
+    --line:#111111;
+    --accent:#111111;
+  }
+  [data-theme="dark"]{
+    --bg:#0E0E0E;
+    --fg:#F2F2F0;
+    --card:#171717;
+    --muted:#9A9A9A;
+    --line:#F2F2F0;
+    --accent:#F2F2F0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: background .25s ease, color .25s ease;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:28px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-family: 'Courier New', monospace;
+    font-weight:700;
+    font-size:28px;
+    letter-spacing:4px;
+  }
+  .toggle{
+    border:1px solid var(--line);
+    background:none;
+    color:var(--fg);
+    padding:8px 16px;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    border-radius:20px;
+  }
+  .toggle:hover{ opacity:.7; }
+
+  main{
+    max-width:1200px;
+    margin:0 auto;
+    padding:48px 32px 80px;
+  }
+  .intro{
+    margin-bottom:48px;
+    max-width:520px;
+  }
+  .intro h1{
+    font-size:16px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--muted);
+    margin:0 0 8px;
+  }
+  .intro p{
+    font-size:14px;
+    color:var(--muted);
+    margin:0;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+    gap:20px;
+  }
+  @media (max-width:600px){
+    .grid{
+      grid-template-columns:repeat(2, 1fr);
+      gap:12px;
+    }
+    .card-actions{
+      flex-direction:row;
+    }
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+  }
+  .photo-slot{
+    aspect-ratio:1/1;
+    max-height:180px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    /* Remplacer ce bloc par : background-image:url('votre-photo.jpg'); background-size:cover; background-position:center; */
+    background-size:cover;
+    background-position:center;
+  }
+  .card-body{
+    padding:18px 18px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1;
+  }
+  .card-name{
+    font-size:15px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .card-desc{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.5;
+    flex:1;
+  }
+  .card-price{
+    font-size:14px;
+    font-weight:700;
+  }
+  .card-actions{
+    margin-top:8px;
+    display:flex;
+    gap:8px;
+  }
+  .card-btn{
+    flex:1;
+    display:block;
+    text-align:center;
+    padding:12px;
+    text-decoration:none;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+  }
+  .card-btn:hover{ opacity:.85; }
+  .btn-whatsapp{
+    background:#25D366;
+    color:#0E0E0E;
+  }
+  .btn-wave{
+    background:#1DC8E4;
+    color:#0E0E0E;
+  }
+
+  footer{
+    text-align:center;
+    padding:32px;
+    font-size:11px;
+    color:var(--muted);
+    border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<header>
+  <div class="logo">XXXX</div>
+  <button class="toggle" onclick="toggleTheme()">Mode sombre</button>
+</header>
+
+<main>
+  <div class="intro">
+    <h1>Collection</h1>
+    <p>Chaque article renvoie vers notre Linktree pour la commande.</p>
+  </div>
+
+  <div class="grid" id="productGrid">
+    <!-- CARTE PRODUIT — dupliquer ce bloc pour chaque article -->
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="photo-slot" style="background-image:url('');">
+        Photo article
+      </div>
+      <div class="card-body">
+        <div class="card-name">Nom de l'article</div>
+        <div class="card-desc">Courte description de l'article, matière, coupe ou détail marquant.</div>
+        <div class="card-price">0 000 FCFA</div>
+        <div class="card-actions">
+          <a class="card-btn btn-whatsapp" href="https://wa.me/NUMERO_WHATSAPP" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="card-btn btn-wave" href="WAVE_URL" target="_blank" rel="noopener">Wave</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 XXXX</footer>
+
+<script>
+  function toggleTheme(){
+    const body = document.body;
+    const btn = document.querySelector('.toggle');
+    if(body.getAttribute('data-theme') === 'light'){
+      body.setAttribute('data-theme','dark');
+      btn.textContent = 'Mode clair';
+    } else {
+      body.setAttribute('data-theme','light');
+      btn.textContent = 'Mode sombre';
+    }
+  }
+</script>
+
+</body>
+</html>
