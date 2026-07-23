@@ -96,6 +96,51 @@
       flex-direction:row;
     }
   }
+  /* Mobile-friendly improvements */
+  @media (max-width:480px) {
+    header{
+      flex-direction:column;
+      align-items:flex-start;
+      gap:12px;
+      padding:16px;
+    }
+    .logo{ font-size:20px; letter-spacing:2px; }
+    .logo img{ max-height:32px; }
+    .toggle{ align-self:flex-end; padding:6px 12px; }
+
+    main{
+      padding:20px 16px 64px;
+    }
+
+    .grid{
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+    }
+
+    .card{
+      border-radius:6px;
+      overflow:hidden;
+    }
+
+    .photo-slot{
+      aspect-ratio:4/3;
+      max-height:220px;
+      height:auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+    }
+
+    .card-body{
+      padding:12px;
+      gap:6px;
+    }
+
+    .card-name{ font-size:14px; }
+    .card-desc{ font-size:13px; }
+    .card-price{ font-size:13px; }
+  }
   .card{
     background:var(--card);
     border:1px solid var(--line);
