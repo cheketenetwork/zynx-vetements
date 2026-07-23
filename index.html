@@ -42,6 +42,11 @@
     font-size:28px;
     letter-spacing:4px;
   }
+  .logo img{
+    max-height:40px;
+    width:auto;
+    display:block;
+  }
   .toggle{
     border:1px solid var(--line);
     background:none;
@@ -173,7 +178,9 @@
 <body data-theme="light">
 
 <header>
-  <div class="logo">ZYNX</div>
+  <div class="logo">
+    <img src="images/logo.jpeg" alt="ZYNX logo">
+  </div>
   <button class="toggle" onclick="toggleTheme()">Mode sombre</button>
 </header>
 
