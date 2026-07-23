@@ -149,7 +149,7 @@
   }
   .photo-slot{
     aspect-ratio:1/1;
-    max-height:180px;
+    max-height:220px;
     border-bottom:1px solid var(--line);
     display:flex;
     align-items:center;
@@ -158,9 +158,11 @@
     font-size:12px;
     text-transform:uppercase;
     letter-spacing:1px;
-    /* Remplacer ce bloc par : background-image:url('votre-photo.jpg'); background-size:cover; background-position:center; */
-    background-size:cover;
+    /* Afficher l'image entière et centrée */
+    background-repeat:no-repeat;
+    background-size:contain;
     background-position:center;
+    background-color:var(--card);
   }
   .card-body{
     padding:18px 18px 22px;
