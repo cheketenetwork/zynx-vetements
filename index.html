@@ -140,6 +140,8 @@
     .card-name{ font-size:14px; }
     .card-desc{ font-size:13px; }
     .card-price{ font-size:13px; }
+    .card-actions{ justify-content:center; flex-direction:column; gap:8px; width:100%; }
+    .card-btn{ width:100%; min-width:unset; padding:10px 12px; }
   }
   .card{
     background:var(--card);
@@ -191,17 +193,21 @@
     margin-top:8px;
     display:flex;
     gap:8px;
+    justify-content:center;
+    align-items:center;
   }
   .card-btn{
-    flex:1;
-    display:block;
+    flex:0 0 auto;
+    display:inline-block;
     text-align:center;
-    padding:12px;
+    padding:10px 14px;
+    min-width:110px;
     text-decoration:none;
     font-size:11px;
     text-transform:uppercase;
     letter-spacing:1px;
     font-weight:700;
+    border-radius:6px;
   }
   .card-btn:hover{ opacity:.85; }
   .btn-whatsapp{
