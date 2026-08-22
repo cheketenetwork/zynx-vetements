@@ -773,7 +773,40 @@
     </div>
   </div>
 
+  <!-- SDK Firebase (compatibilité 10.x) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
   <script>
+    // Configuration Firebase (À renseigner pour activer la synchronisation globale)
+    const firebaseConfig = {
+      apiKey: "AIzaSyB0RIHEydqh5-aMEsto4HNTQy_83EamYEo",
+      authDomain: "zynx-d5bae.firebaseapp.com",
+      projectId: "zynx-d5bae",
+      storageBucket: "zynx-d5bae.firebasestorage.app",
+      messagingSenderId: "168361618952",
+      appId: "1:168361618952:web:9ca8451cb98cb55eec2bbd",
+      measurementId: "G-1N3R240FJZ"
+    };
+
+    let useFirebase = false;
+    let db;
+
+    // Activer Firebase uniquement si la config est valide
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "VOTRE_API_KEY") {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        useFirebase = true;
+        console.log("Firebase initialisé avec succès !");
+      } catch (err) {
+        console.error("Erreur lors de l'initialisation de Firebase:", err);
+      }
+    } else {
+      console.log("Firebase non configuré. Utilisation du stockage local (localStorage).");
+    }
+
     // Le hash SHA-256 de "habit de skb"
     const ADMIN_PASSWORD_HASH = "ce18ac3e958937287bb0de44a0bc2007b7468208830b00f5e3e6fd61aa33a388";
 
@@ -815,6 +848,8 @@
         snapchat: "https://www.snapchat.com/add/shopzynx"
       }
     ];
+
+    let loadedProducts = []; // Mémoire cache des produits chargés pour édition rapide
 
     // SHA-256 Hash Helper
     async function getSHA256Hash(string) {
@@ -866,6 +901,16 @@
       
       const pwdHash = await getSHA256Hash(pwd);
       if (pwdHash === ADMIN_PASSWORD_HASH) {
+        if (useFirebase) {
+          try {
+            // S'authentifier anonymement pour autoriser l'écriture sur Firestore
+            await firebase.auth().signInAnonymously();
+            console.log("Authentifié anonymement sur Firebase.");
+          } catch (err) {
+            console.error("Erreur Firebase Auth:", err);
+            showToast("Connexion cloud restreinte. Utilisation locale.", "error");
+          }
+        }
         sessionStorage.setItem('zynx_admin_logged', 'true');
         errorDiv.style.opacity = '0';
         showToast('Connexion réussie !');
@@ -883,6 +928,9 @@
     }
 
     function handleLogout() {
+      if (useFirebase) {
+        firebase.auth().signOut().catch(err => console.error(err));
+      }
       sessionStorage.removeItem('zynx_admin_logged');
       showToast('Déconnexion réussie !', 'success');
       document.getElementById('passwordInput').value = '';
@@ -901,7 +949,7 @@
     document.head.appendChild(styleSheet);
 
     // DATABASE UTILS
-    function getProducts() {
+    function getProductsLocal() {
       let data = localStorage.getItem('zynx_products');
       if (!data) {
         localStorage.setItem('zynx_products', JSON.stringify(defaultProducts));
@@ -910,14 +958,28 @@
       return JSON.parse(data);
     }
 
-    function saveProducts(products) {
-      localStorage.setItem('zynx_products', JSON.stringify(products));
-      loadDashboard();
-    }
-
     // DASHBOARD DATA LOAD
-    function loadDashboard() {
-      const products = getProducts();
+    async function loadDashboard() {
+      let products = [];
+
+      if (useFirebase) {
+        try {
+          const snapshot = await db.collection('products').get();
+          if (snapshot.empty) {
+            products = defaultProducts;
+          } else {
+            products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            products.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+          }
+        } catch (err) {
+          console.error("Erreur Firebase, repli sur local:", err);
+          products = getProductsLocal();
+        }
+      } else {
+        products = getProductsLocal();
+      }
+
+      loadedProducts = products; // Mettre en cache
       
       // Update stats
       document.getElementById('statTotal').innerText = products.length;
@@ -925,7 +987,6 @@
       let sum = 0;
       let numericCount = 0;
       products.forEach(p => {
-        // Parse numerical price if possible (remove text like FCFA, spaces)
         const num = parseFloat(p.price.replace(/[^\d]/g, ''));
         if (!isNaN(num)) {
           sum += num;
@@ -935,15 +996,19 @@
       const avg = numericCount > 0 ? Math.round(sum / numericCount) : 0;
       document.getElementById('statAvgPrice').innerText = avg.toLocaleString('fr-FR') + ' FCFA';
       
-      // Local storage usage
+      // Local storage/Database usage estimate
       let totalBytes = 0;
-      for (let x in localStorage) {
-        if (localStorage.hasOwnProperty(x)) {
-          totalBytes += (localStorage[x].length + x.length) * 2; // 2 bytes per char in UTF-16
+      if (useFirebase) {
+        totalBytes = JSON.stringify(products).length * 2; // approximation de la taille des données
+      } else {
+        for (let x in localStorage) {
+          if (localStorage.hasOwnProperty(x)) {
+            totalBytes += (localStorage[x].length + x.length) * 2;
+          }
         }
       }
-      // ~5MB is standard quota
-      const pct = Math.min(100, Math.round((totalBytes / (5 * 1024 * 1024)) * 100));
+      const limit = useFirebase ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB Firestore gratuit / 5MB local
+      const pct = Math.min(100, Math.round((totalBytes / limit) * 100));
       document.getElementById('statStorage').innerText = pct + '%';
 
       // Load products table
@@ -1002,7 +1067,6 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      // Check size (warn if very big, but we will compress it anyway)
       compressAndSaveImage(file, (dataUrl) => {
         document.getElementById('pImageData').value = dataUrl;
         updatePreview(dataUrl);
@@ -1035,7 +1099,6 @@
           let width = img.width;
           let height = img.height;
           
-          // Compresser à un maximum de 600x600 pixels pour optimiser localStorage
           const MAX_WIDTH = 600;
           const MAX_HEIGHT = 600;
           
@@ -1057,7 +1120,6 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Compression en JPEG avec 0.75 qualité (excellent ratio taille/rendu)
           const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
           callback(dataUrl);
         };
@@ -1083,8 +1145,7 @@
     }
 
     function editProduct(id) {
-      const products = getProducts();
-      const p = products.find(prod => prod.id === id);
+      const p = loadedProducts.find(prod => prod.id === id);
       if (!p) return;
 
       document.getElementById('modalTitle').innerText = "Modifier l'article";
@@ -1098,7 +1159,6 @@
       document.getElementById('pImageData').value = p.image;
       updatePreview(p.image);
 
-      // Determine source type (if it is a base64 string, it's file source)
       if (p.image && p.image.startsWith('data:')) {
         setImageSource('file');
       } else {
@@ -1109,7 +1169,7 @@
       document.getElementById('productModal').classList.add('active');
     }
 
-    function saveProduct(event) {
+    async function saveProduct(event) {
       event.preventDefault();
 
       const id = document.getElementById('productId').value;
@@ -1120,49 +1180,90 @@
       const whatsapp = document.getElementById('pWhatsapp').value;
       const snapchat = document.getElementById('pSnapchat').value;
 
-      let products = getProducts();
+      if (useFirebase) {
+        try {
+          const productData = {
+            name,
+            desc,
+            price,
+            image,
+            whatsapp,
+            snapchat,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
 
-      if (id) {
-        // Edit Mode
-        products = products.map(p => {
-          if (p.id === id) {
-            return { id, name, desc, price, image, whatsapp, snapchat };
+          if (id) {
+            await db.collection('products').doc(id).set(productData, { merge: true });
+            showToast('Article mis à jour dans le cloud !');
+          } else {
+            await db.collection('products').add({
+              ...productData,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast('Nouvel article ajouté au cloud !');
           }
-          return p;
-        });
-        showToast('Article mis à jour avec succès !');
+          closeModal();
+          await loadDashboard();
+        } catch (err) {
+          console.error("Erreur écriture Firebase:", err);
+          showToast("Erreur lors de la sauvegarde cloud. Vérifiez vos règles de sécurité.", 'error');
+        }
       } else {
-        // Add Mode
-        const newProduct = {
-          id: Date.now().toString(),
-          name,
-          desc,
-          price,
-          image,
-          whatsapp,
-          snapchat
-        };
-        products.push(newProduct);
-        showToast('Nouvel article ajouté !');
-      }
+        // Mode Local
+        let products = loadedProducts;
 
-      saveProducts(products);
-      closeModal();
+        if (id) {
+          products = products.map(p => {
+            if (p.id === id) {
+              return { id, name, desc, price, image, whatsapp, snapchat };
+            }
+            return p;
+          });
+          showToast('Article mis à jour localement !');
+        } else {
+          const newProduct = {
+            id: Date.now().toString(),
+            name,
+            desc,
+            price,
+            image,
+            whatsapp,
+            snapchat
+          };
+          products.push(newProduct);
+          showToast('Nouvel article ajouté localement !');
+        }
+
+        localStorage.setItem('zynx_products', JSON.stringify(products));
+        closeModal();
+        loadDashboard();
+      }
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
-        let products = getProducts();
-        products = products.filter(p => p.id !== id);
-        saveProducts(products);
-        showToast('Article supprimé avec succès !', 'error');
+        if (useFirebase) {
+          try {
+            await db.collection('products').doc(id).delete();
+            showToast('Article supprimé du cloud !', 'error');
+            await loadDashboard();
+          } catch (err) {
+            console.error("Erreur de suppression Firebase:", err);
+            showToast("Erreur lors de la suppression cloud.", 'error');
+          }
+        } else {
+          let products = loadedProducts;
+          products = products.filter(p => p.id !== id);
+          localStorage.setItem('zynx_products', JSON.stringify(products));
+          showToast('Article supprimé localement !', 'error');
+          loadDashboard();
+        }
       }
     }
 
     // EXPORT/IMPORT AND RESET DATABASE
     function exportDatabase() {
-      const products = getProducts();
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(loadedProducts, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `zynx_db_backup_${new Date().toISOString().slice(0,10)}.json`);
@@ -1181,15 +1282,39 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         try {
           const importedData = JSON.parse(e.target.result);
           if (Array.isArray(importedData)) {
-            // Basic validation
             let isValid = importedData.every(item => item.name && item.price);
             if (isValid) {
-              saveProducts(importedData);
-              showToast('Base de données importée avec succès !');
+              if (useFirebase) {
+                showToast('Importation cloud en cours...', 'info');
+                // Supprimer les anciens documents
+                const snapshot = await db.collection('products').get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+
+                // Ajouter les nouveaux documents
+                for (let p of importedData) {
+                  await db.collection('products').add({
+                    name: p.name,
+                    desc: p.desc,
+                    price: p.price,
+                    image: p.image || '',
+                    whatsapp: p.whatsapp || '',
+                    snapchat: p.snapchat || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+                }
+                showToast('Base de données cloud importée !');
+                await loadDashboard();
+              } else {
+                localStorage.setItem('zynx_products', JSON.stringify(importedData));
+                showToast('Base de données importée localement !');
+                loadDashboard();
+              }
             } else {
               showToast('Format JSON invalide : champs "name" et "price" requis.', 'error');
             }
@@ -1204,10 +1329,40 @@
       event.target.value = ''; // Reset file input
     }
 
-    function confirmReset() {
+    async function confirmReset() {
       if (confirm('Voulez-vous réinitialiser tous les articles et restaurer les 4 produits d\'origine de ZYNX ?')) {
-        saveProducts(defaultProducts);
-        showToast('Boutique réinitialisée aux articles par défaut !');
+        if (useFirebase) {
+          try {
+            showToast('Réinitialisation cloud en cours...', 'info');
+            // Supprimer tous les articles existants
+            const snapshot = await db.collection('products').get();
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+
+            // Ajouter les articles par défaut
+            for (let p of defaultProducts) {
+              await db.collection('products').doc(p.id).set({
+                name: p.name,
+                desc: p.desc,
+                price: p.price,
+                image: p.image,
+                whatsapp: p.whatsapp,
+                snapchat: p.snapchat,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            }
+            showToast('Boutique réinitialisée dans le cloud !');
+            await loadDashboard();
+          } catch (err) {
+            console.error("Erreur réinitialisation Firebase:", err);
+            showToast("Erreur lors de la réinitialisation cloud.", 'error');
+          }
+        } else {
+          localStorage.setItem('zynx_products', JSON.stringify(defaultProducts));
+          showToast('Boutique réinitialisée localement !');
+          loadDashboard();
+        }
       }
     }
 

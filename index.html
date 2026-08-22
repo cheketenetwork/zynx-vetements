@@ -429,7 +429,39 @@
     © 2026 ZYNX _ Tous droits réservés | <a href="admin.html" style="color: var(--muted); text-decoration: none; font-size: 11px; margin-left: 5px;">🔒 Admin</a>
   </footer>
 
+  <!-- SDK Firebase (compatibilité 10.x) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <script>
+    // Configuration Firebase (À renseigner pour activer la synchronisation globale)
+    const firebaseConfig = {
+      apiKey: "AIzaSyB0RIHEydqh5-aMEsto4HNTQy_83EamYEo",
+      authDomain: "zynx-d5bae.firebaseapp.com",
+      projectId: "zynx-d5bae",
+      storageBucket: "zynx-d5bae.firebasestorage.app",
+      messagingSenderId: "168361618952",
+      appId: "1:168361618952:web:9ca8451cb98cb55eec2bbd",
+      measurementId: "G-1N3R240FJZ"
+    };
+
+    let useFirebase = false;
+    let db;
+
+    // Activer Firebase uniquement si la config est valide
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "VOTRE_API_KEY") {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        useFirebase = true;
+        console.log("Firebase initialisé avec succès !");
+      } catch (err) {
+        console.error("Erreur lors de l'initialisation de Firebase:", err);
+      }
+    } else {
+      console.log("Firebase non configuré. Utilisation du stockage local (localStorage).");
+    }
+
     const defaultProducts = [
       {
         id: "1",
@@ -481,11 +513,31 @@
       }
     }
 
-    function loadProducts() {
-      let products = JSON.parse(localStorage.getItem('zynx_products'));
-      if (!products) {
-        products = defaultProducts;
-        localStorage.setItem('zynx_products', JSON.stringify(products));
+    async function loadProducts() {
+      let products = [];
+
+      if (useFirebase) {
+        try {
+          const snapshot = await db.collection('products').get();
+          if (snapshot.empty) {
+            products = defaultProducts;
+            // Optionnel : peupler la base cloud au premier lancement
+            console.log("Base de données cloud vide.");
+          } else {
+            products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Trier par ordre de création
+            products.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+          }
+        } catch (err) {
+          console.error("Erreur Firebase, repli sur localStorage:", err);
+          products = JSON.parse(localStorage.getItem('zynx_products')) || defaultProducts;
+        }
+      } else {
+        products = JSON.parse(localStorage.getItem('zynx_products'));
+        if (!products) {
+          products = defaultProducts;
+          localStorage.setItem('zynx_products', JSON.stringify(products));
+        }
       }
 
       const grid = document.getElementById('productGrid');
