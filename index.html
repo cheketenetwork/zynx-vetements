@@ -421,77 +421,54 @@
     </div>
 
     <div class="grid" id="productGrid">
-      <!-- CARTE PRODUIT — dupliquer ce bloc pour chaque article -->
-      <div class="card">
-        <div class="photo-slot" style="background-image:url('images/IMAGE SKB 6.jpeg');">
-        </div>
-        <div class="card-body">
-          <div class="card-name">T-shirt ZYNX</div>
-          <div class="card-desc">T-shirt noir floqué "NUMERO 10"</div>
-          <div class="card-price">15 000 FCFA</div>
-          <div class="card-actions">
-            <a class="card-btn btn-whatsapp" href="https://wa.me/2250715296328" target="_blank"
-              rel="noopener">WhatsApp</a>
-            <a class="card-btn btn-wave" href="https://www.snapchat.com/add/shopzynx" target="_blank"
-              rel="noopener">Snapchat</a>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="photo-slot" style="background-image:url('images/IMAGE SKB 3.jpeg');">
-          Photo article
-        </div>
-        <div class="card-body">
-          <div class="card-name">T-shirt ZYNX</div>
-          <div class="card-desc">T-shirt blanc motif gilet par-balle</div>
-          <div class="card-price">15 000 FCFA</div>
-          <div class="card-actions">
-            <a class="card-btn btn-whatsapp" href="https://wa.me/2250715296328" target="_blank"
-              rel="noopener">WhatsApp</a>
-            <a class="card-btn btn-wave" href="https://www.snapchat.com/add/shopzynx" target="_blank"
-              rel="noopener">Snapchat</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="photo-slot" style="background-image:url('images/IMAGE SKB 2.jpeg');">
-          Photo article
-        </div>
-        <div class="card-body">
-          <div class="card-name">T-shirt ZYNX</div>
-          <div class="card-desc">T-shirt blanc motif gilet par-balle</div>
-          <div class="card-price">15 000 FCFA</div>
-          <div class="card-actions">
-            <a class="card-btn btn-whatsapp" href="https://wa.me/2250715296328" target="_blank"
-              rel="noopener">WhatsApp</a>
-            <a class="card-btn btn-wave" href="https://www.snapchat.com/add/shopzynx" target="_blank"
-              rel="noopener">Snapchat</a>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="photo-slot" style="background-image:url('images/SKB FILLE 2.jpeg');">
-          Photo article
-        </div>
-        <div class="card-body">
-          <div class="card-name">T-shirt ZYNX</div>
-          <div class="card-desc">Crop-top femme "#SWAG"</div>
-          <div class="card-price">15 000 FCFA</div>
-          <div class="card-actions">
-            <a class="card-btn btn-whatsapp" href="https://wa.me/2250715296328" target="_blank"
-              rel="noopener">WhatsApp</a>
-            <a class="card-btn btn-wave" href="https://www.snapchat.com/add/shopzynx" target="_blank"
-              rel="noopener">Snapchat</a>
-          </div>
-        </div>
-      </div>
+      <!-- Les produits seront chargés dynamiquement depuis localStorage -->
     </div>
   </main>
 
-  <footer>© 2026 ZYNX _ Tous droits réservés</footer>
+  <footer>
+    © 2026 ZYNX _ Tous droits réservés | <a href="admin.html" style="color: var(--muted); text-decoration: none; font-size: 11px; margin-left: 5px;">🔒 Admin</a>
+  </footer>
 
   <script>
+    const defaultProducts = [
+      {
+        id: "1",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt noir floqué \"NUMERO 10\"",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 6.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "2",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt blanc motif gilet par-balle",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 3.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "3",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt blanc motif gilet par-balle",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 2.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "4",
+        name: "T-shirt ZYNX",
+        desc: "Crop-top femme \"#SWAG\"",
+        price: "15 000 FCFA",
+        image: "images/SKB FILLE 2.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      }
+    ];
+
     function toggleTheme() {
       const body = document.body;
       const btn = document.querySelector('.toggle');
@@ -503,8 +480,56 @@
         btn.textContent = 'Mode sombre';
       }
     }
+
+    function loadProducts() {
+      let products = JSON.parse(localStorage.getItem('zynx_products'));
+      if (!products) {
+        products = defaultProducts;
+        localStorage.setItem('zynx_products', JSON.stringify(products));
+      }
+
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+
+      products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        // Gérer les images (Base64 locales ou liens images/)
+        const bgImage = product.image ? `url('${product.image}')` : 'none';
+
+        card.innerHTML = `
+          <div class="photo-slot" style="background-image: ${bgImage};">
+            ${product.image ? '' : 'Photo article'}
+          </div>
+          <div class="card-body">
+            <div class="card-name">${escapeHTML(product.name)}</div>
+            <div class="card-desc">${escapeHTML(product.desc)}</div>
+            <div class="card-price">${escapeHTML(product.price)}</div>
+            <div class="card-actions">
+              ${product.whatsapp ? `<a class="card-btn btn-whatsapp" href="${escapeHTML(product.whatsapp)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+              ${product.snapchat ? `<a class="card-btn btn-wave" href="${escapeHTML(product.snapchat)}" target="_blank" rel="noopener">Snapchat</a>` : ''}
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g,
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProducts);
   </script>
-
 </body>
-
 </html>

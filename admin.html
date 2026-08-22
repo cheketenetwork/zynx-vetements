@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/jpeg" href="images/favicon.jpeg">
+  <title>Admin Dashboard - ZYNX</title>
+  <!-- Google Fonts Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: rgba(22, 24, 30, 0.75);
+      --panel-solid: #16181e;
+      --border: rgba(255, 255, 255, 0.08);
+      --fg: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #ddff00;
+      --primary-rgb: 221, 255, 0;
+      --primary-glow: rgba(221, 255, 0, 0.15);
+      --error: #f87171;
+      --success: #34d399;
+      --input-bg: rgba(255, 255, 255, 0.03);
+      --font: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #1a1e29 0%, var(--bg) 70%);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Modern scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2b2e3a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    /* Screen view transition styling */
+    .screen {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      transform: translateY(10px);
+    }
+
+    .screen.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* LOGIN SCREEN */
+    #loginScreen {
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(var(--primary-rgb), 0.03);
+      text-align: center;
+      animation: floatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-logo {
+      max-height: 50px;
+      margin-bottom: 24px;
+    }
+
+    .login-card h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .login-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-control {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--fg);
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: #cce700;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.25);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .login-error {
+      color: var(--error);
+      font-size: 13px;
+      margin-top: 16px;
+      min-height: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* DASHBOARD SCREEN */
+    #dashboardScreen {
+      flex-direction: column;
+      flex: 1;
+    }
+
+    header {
+      background: rgba(11, 12, 16, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-logo {
+      max-height: 36px;
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding-left: 20px;
+      border-left: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--fg);
+      color: var(--fg);
+      box-shadow: none;
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+    .btn-danger:hover {
+      background: var(--error);
+      color: #000;
+      box-shadow: 0 8px 20px rgba(248, 113, 113, 0.25);
+    }
+
+    main {
+      flex: 1;
+      padding: 40px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Dashboard Grid layout */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .dashboard-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .stat-card.red::before {
+      background: var(--error);
+    }
+
+    .stat-card.green::before {
+      background: var(--success);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--fg);
+    }
+
+    /* Actions Panel */
+    .actions-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .actions-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-right: 12px;
+    }
+
+    /* Table Container */
+    .table-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .product-table th {
+      padding: 18px 24px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .product-table td {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      vertical-align: middle;
+    }
+
+    .product-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .product-table tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .product-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .empty-state {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      stroke: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* MODAL FOR ADD/EDIT */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-container {
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      overflow: hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 24px;
+      transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--fg);
+    }
+
+    .modal-body {
+      padding: 32px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .image-preview-box {
+      width: 100%;
+      height: 160px;
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 16px 24px;
+      color: var(--fg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      transform: translateX(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      border-left-color: var(--success);
+    }
+
+    .toast.error {
+      border-left-color: var(--error);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+      }
+      .header-title {
+        display: none;
+      }
+      main {
+        padding: 20px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .actions-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .actions-title {
+        margin-bottom: 8px;
+      }
+      .product-table th, .product-table td {
+        padding: 12px 16px;
+      }
+      .product-table th:nth-child(3), 
+      .product-table td:nth-child(3) {
+        display: none; /* Hide description on mobile to save space */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 1. LOGIN SCREEN -->
+  <div class="screen active" id="loginScreen">
+    <div class="login-card">
+      <img src="images/logo.jpeg" alt="ZYNX Logo" class="login-logo" onerror="this.style.display='none'">
+      <h1>ZYNX</h1>
+      <p>Boutique d'Administration</p>
+      
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="passwordInput">Mot de passe de sécurité</label>
+          <div class="input-wrapper">
+            <input type="password" id="passwordInput" class="input-control" placeholder="••••••••" required autofocus autocomplete="current-password">
+          </div>
+        </div>
+        <button type="submit" class="btn">
+          <span>Se Connecter</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </form>
+      <div class="login-error" id="loginError">Mot de passe incorrect</div>
+    </div>
+  </div>
+
+  <!-- 2. DASHBOARD SCREEN -->
+  <div class="screen" id="dashboardScreen">
+    <header>
+      <div class="header-left">
+        <img src="images/logo.jpeg" alt="ZYNX" class="header-logo" onerror="this.style.display='none'">
+        <span class="header-title">ADMINISTRATION</span>
+      </div>
+      <div class="header-right">
+        <a href="index.html" class="btn btn-secondary btn-sm" target="_blank">Voir la boutique ↗</a>
+        <button class="btn btn-danger btn-sm" onclick="handleLogout()">Déconnexion</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="dashboard-header">
+        <h2>Catalogue Articles</h2>
+        <button class="btn btn-sm" style="width: auto;" onclick="openAddModal()">+ Ajouter un article</button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Articles</span>
+          <span class="stat-value" id="statTotal">0</span>
+        </div>
+        <div class="stat-card green">
+          <span class="stat-label">Prix Moyen</span>
+          <span class="stat-value" id="statAvgPrice">0 FCFA</span>
+        </div>
+        <div class="stat-card red">
+          <span class="stat-label">Stockage Local</span>
+          <span class="stat-value" id="statStorage">0%</span>
+        </div>
+      </div>
+
+      <!-- Actions Panel -->
+      <div class="actions-panel">
+        <span class="actions-title">Base de Données :</span>
+        <button class="btn btn-secondary btn-sm" onclick="exportDatabase()">Exporter JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="triggerImport()">Importer JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
+        <button class="btn btn-danger btn-sm" style="margin-left: auto;" onclick="confirmReset()">Réinitialiser Boutique</button>
+      </div>
+
+      <!-- Table of Products -->
+      <div class="table-container">
+        <table class="product-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">Image</th>
+              <th>Nom</th>
+              <th>Description</th>
+              <th style="width: 150px;">Prix</th>
+              <th style="width: 150px; text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            <!-- Rempli en JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL AJOUT / EDITION -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalTitle">Ajouter un article</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <div class="modal-body">
+          <input type="hidden" id="productId">
+          
+          <div class="form-group">
+            <label for="pName">Nom de l'article</label>
+            <input type="text" id="pName" class="input-control" required placeholder="ex: T-shirt ZYNX Premium">
+          </div>
+
+          <div class="form-group">
+            <label for="pDesc">Description</label>
+            <input type="text" id="pDesc" class="input-control" required placeholder="ex: T-shirt noir floqué haute qualité">
+          </div>
+
+          <div class="form-group">
+            <label for="pPrice">Prix (Texte libre)</label>
+            <input type="text" id="pPrice" class="input-control" required placeholder="ex: 15 000 FCFA">
+          </div>
+
+          <!-- Image Selectors -->
+          <div class="form-group">
+            <label>Image de l'article</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <button type="button" class="btn btn-secondary btn-sm" style="flex: 1;" onclick="setImageSource('file')">Charger fichier local</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="flex: 1;" onclick="setImageSource('url')">Saisir URL / Chemin</button>
+            </div>
+            
+            <!-- File input source -->
+            <div id="imageFileSource">
+              <input type="file" id="pFile" class="input-control" accept="image/*" onchange="handleImageFileSelect(event)">
+            </div>
+            
+            <!-- URL input source -->
+            <div id="imageUrlSource" style="display: none;">
+              <input type="text" id="pUrl" class="input-control" placeholder="ex: images/IMAGE SKB 6.jpeg" oninput="handleImageUrlChange(event)">
+            </div>
+            
+            <input type="hidden" id="pImageData">
+            <div class="image-preview-box" id="pPreview">Aperçu de l'image</div>
+          </div>
+
+          <div class="form-group">
+            <label for="pWhatsapp">Lien WhatsApp</label>
+            <input type="url" id="pWhatsapp" class="input-control" required placeholder="ex: https://wa.me/2250715296328">
+          </div>
+
+          <div class="form-group">
+            <label for="pSnapchat">Lien Snapchat</label>
+            <input type="url" id="pSnapchat" class="input-control" required placeholder="ex: https://www.snapchat.com/add/shopzynx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn btn-sm">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Le hash SHA-256 de "habit de skb"
+    const ADMIN_PASSWORD_HASH = "ce18ac3e958937287bb0de44a0bc2007b7468208830b00f5e3e6fd61aa33a388";
+
+    const defaultProducts = [
+      {
+        id: "1",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt noir floqué \"NUMERO 10\"",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 6.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "2",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt blanc motif gilet par-balle",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 3.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "3",
+        name: "T-shirt ZYNX",
+        desc: "T-shirt blanc motif gilet par-balle",
+        price: "15 000 FCFA",
+        image: "images/IMAGE SKB 2.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      },
+      {
+        id: "4",
+        name: "T-shirt ZYNX",
+        desc: "Crop-top femme \"#SWAG\"",
+        price: "15 000 FCFA",
+        image: "images/SKB FILLE 2.jpeg",
+        whatsapp: "https://wa.me/2250715296328",
+        snapchat: "https://www.snapchat.com/add/shopzynx"
+      }
+    ];
+
+    // SHA-256 Hash Helper
+    async function getSHA256Hash(string) {
+      const msgBuffer = new TextEncoder().encode(string);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    // Toast show helper
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerText = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // CHECK AUTH ON LOAD
+    document.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('zynx_admin_logged') === 'true') {
+        showScreen('dashboardScreen');
+        loadDashboard();
+      } else {
+        showScreen('loginScreen');
+      }
+    });
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // AUTH ACTIONS
+    async function handleLogin(event) {
+      event.preventDefault();
+      const pwd = document.getElementById('passwordInput').value;
+      const errorDiv = document.getElementById('loginError');
+      
+      const pwdHash = await getSHA256Hash(pwd);
+      if (pwdHash === ADMIN_PASSWORD_HASH) {
+        sessionStorage.setItem('zynx_admin_logged', 'true');
+        errorDiv.style.opacity = '0';
+        showToast('Connexion réussie !');
+        showScreen('dashboardScreen');
+        loadDashboard();
+      } else {
+        errorDiv.style.opacity = '1';
+        // Shake animation
+        const card = document.querySelector('.login-card');
+        card.style.animation = 'none';
+        setTimeout(() => {
+          card.style.animation = 'shake 0.4s ease';
+        }, 10);
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('zynx_admin_logged');
+      showToast('Déconnexion réussie !', 'success');
+      document.getElementById('passwordInput').value = '';
+      showScreen('loginScreen');
+    }
+
+    // Add simple CSS shake animation for failed login
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
+    // DATABASE UTILS
+    function getProducts() {
+      let data = localStorage.getItem('zynx_products');
+      if (!data) {
+        localStorage.setItem('zynx_products', JSON.stringify(defaultProducts));
+        return defaultProducts;
+      }
+      return JSON.parse(data);
+    }
+
+    function saveProducts(products) {
+      localStorage.setItem('zynx_products', JSON.stringify(products));
+      loadDashboard();
+    }
+
+    // DASHBOARD DATA LOAD
+    function loadDashboard() {
+      const products = getProducts();
+      
+      // Update stats
+      document.getElementById('statTotal').innerText = products.length;
+      
+      let sum = 0;
+      let numericCount = 0;
+      products.forEach(p => {
+        // Parse numerical price if possible (remove text like FCFA, spaces)
+        const num = parseFloat(p.price.replace(/[^\d]/g, ''));
+        if (!isNaN(num)) {
+          sum += num;
+          numericCount++;
+        }
+      });
+      const avg = numericCount > 0 ? Math.round(sum / numericCount) : 0;
+      document.getElementById('statAvgPrice').innerText = avg.toLocaleString('fr-FR') + ' FCFA';
+      
+      // Local storage usage
+      let totalBytes = 0;
+      for (let x in localStorage) {
+        if (localStorage.hasOwnProperty(x)) {
+          totalBytes += (localStorage[x].length + x.length) * 2; // 2 bytes per char in UTF-16
+        }
+      }
+      // ~5MB is standard quota
+      const pct = Math.min(100, Math.round((totalBytes / (5 * 1024 * 1024)) * 100));
+      document.getElementById('statStorage').innerText = pct + '%';
+
+      // Load products table
+      const tbody = document.getElementById('productTableBody');
+      tbody.innerHTML = '';
+
+      if (products.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.008 1.24l.885 1.77a2.25 2.25 0 002.007 1.24h1.98a2.25 2.25 0 002.007-1.24l.885-1.77a2.25 2.25 0 012.007-1.24h3.86m-18 0h18m-18 0l-1.24 6.202A2.25 2.25 0 002.25 22h19.5a2.25 2.25 0 002.24-2.548L21.75 13.5m-18 0V4.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 4.5v9"></path>
+              </svg>
+              <p>Aucun produit en ligne. Cliquez sur "Ajouter un article" pour en ajouter un.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      products.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><img src="${p.image || ''}" alt="photo" class="product-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23222%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2210%22>No Image</text></svg>'"></td>
+          <td style="font-weight: 600;">${escapeHTML(p.name)}</td>
+          <td style="color: var(--muted); font-size: 14px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(p.desc)}</td>
+          <td style="font-weight: 700; color: var(--primary);">${escapeHTML(p.price)}</td>
+          <td align="center">
+            <div class="table-actions">
+              <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" style="padding: 6px 12px; font-size: 11px;">Modifier</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" style="padding: 6px 12px; font-size: 11px;">Supprimer</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // IMAGE UPLOAD / COMPRESSION UTILS
+    let currentImageSource = 'file';
+
+    function setImageSource(type) {
+      currentImageSource = type;
+      if (type === 'file') {
+        document.getElementById('imageFileSource').style.display = 'block';
+        document.getElementById('imageUrlSource').style.display = 'none';
+        document.getElementById('pUrl').value = '';
+      } else {
+        document.getElementById('imageFileSource').style.display = 'none';
+        document.getElementById('imageUrlSource').style.display = 'block';
+        document.getElementById('pFile').value = '';
+      }
+    }
+
+    function handleImageFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Check size (warn if very big, but we will compress it anyway)
+      compressAndSaveImage(file, (dataUrl) => {
+        document.getElementById('pImageData').value = dataUrl;
+        updatePreview(dataUrl);
+      });
+    }
+
+    function handleImageUrlChange(event) {
+      const val = event.target.value;
+      document.getElementById('pImageData').value = val;
+      updatePreview(val);
+    }
+
+    function updatePreview(src) {
+      const preview = document.getElementById('pPreview');
+      if (src) {
+        preview.style.backgroundImage = `url('${src}')`;
+        preview.innerText = '';
+      } else {
+        preview.style.backgroundImage = 'none';
+        preview.innerText = "Aperçu de l'image";
+      }
+    }
+
+    function compressAndSaveImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Compresser à un maximum de 600x600 pixels pour optimiser localStorage
+          const MAX_WIDTH = 600;
+          const MAX_HEIGHT = 600;
+          
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compression en JPEG avec 0.75 qualité (excellent ratio taille/rendu)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          callback(dataUrl);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // CRUD ACTIONS
+    function openAddModal() {
+      document.getElementById('modalTitle').innerText = "Ajouter un article";
+      document.getElementById('productForm').reset();
+      document.getElementById('productId').value = '';
+      document.getElementById('pImageData').value = '';
+      updatePreview('');
+      setImageSource('file');
+      
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function editProduct(id) {
+      const products = getProducts();
+      const p = products.find(prod => prod.id === id);
+      if (!p) return;
+
+      document.getElementById('modalTitle').innerText = "Modifier l'article";
+      document.getElementById('productId').value = p.id;
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pDesc').value = p.desc;
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pWhatsapp').value = p.whatsapp;
+      document.getElementById('pSnapchat').value = p.snapchat;
+      
+      document.getElementById('pImageData').value = p.image;
+      updatePreview(p.image);
+
+      // Determine source type (if it is a base64 string, it's file source)
+      if (p.image && p.image.startsWith('data:')) {
+        setImageSource('file');
+      } else {
+        setImageSource('url');
+        document.getElementById('pUrl').value = p.image || '';
+      }
+
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function saveProduct(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('productId').value;
+      const name = document.getElementById('pName').value;
+      const desc = document.getElementById('pDesc').value;
+      const price = document.getElementById('pPrice').value;
+      const image = document.getElementById('pImageData').value;
+      const whatsapp = document.getElementById('pWhatsapp').value;
+      const snapchat = document.getElementById('pSnapchat').value;
+
+      let products = getProducts();
+
+      if (id) {
+        // Edit Mode
+        products = products.map(p => {
+          if (p.id === id) {
+            return { id, name, desc, price, image, whatsapp, snapchat };
+          }
+          return p;
+        });
+        showToast('Article mis à jour avec succès !');
+      } else {
+        // Add Mode
+        const newProduct = {
+          id: Date.now().toString(),
+          name,
+          desc,
+          price,
+          image,
+          whatsapp,
+          snapchat
+        };
+        products.push(newProduct);
+        showToast('Nouvel article ajouté !');
+      }
+
+      saveProducts(products);
+      closeModal();
+    }
+
+    function deleteProduct(id) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+        let products = getProducts();
+        products = products.filter(p => p.id !== id);
+        saveProducts(products);
+        showToast('Article supprimé avec succès !', 'error');
+      }
+    }
+
+    // EXPORT/IMPORT AND RESET DATABASE
+    function exportDatabase() {
+      const products = getProducts();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `zynx_db_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Base de données exportée !');
+    }
+
+    function triggerImport() {
+      document.getElementById('importFile').click();
+    }
+
+    function importDatabase(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData)) {
+            // Basic validation
+            let isValid = importedData.every(item => item.name && item.price);
+            if (isValid) {
+              saveProducts(importedData);
+              showToast('Base de données importée avec succès !');
+            } else {
+              showToast('Format JSON invalide : champs "name" et "price" requis.', 'error');
+            }
+          } else {
+            showToast('Le fichier doit contenir un tableau d\'articles.', 'error');
+          }
+        } catch(err) {
+          showToast('Erreur lors de la lecture du fichier JSON.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    function confirmReset() {
+      if (confirm('Voulez-vous réinitialiser tous les articles et restaurer les 4 produits d\'origine de ZYNX ?')) {
+        saveProducts(defaultProducts);
+        showToast('Boutique réinitialisée aux articles par défaut !');
+      }
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g,
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+  </script>
+</body>
+</html>
