@@ -901,8 +901,14 @@
     }
 
     // CHECK AUTH ON LOAD
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       if (sessionStorage.getItem('zynx_admin_logged') === 'true') {
+        if (useFirebase && !(await ensureFirebaseAuth())) {
+          sessionStorage.removeItem('zynx_admin_logged');
+          showScreen('loginScreen');
+          showToast('Connexion Firebase indisponible. Activez l\'authentification anonyme.', 'error');
+          return;
+        }
         showScreen('dashboardScreen');
         loadDashboard();
       } else {
@@ -923,15 +929,9 @@
       
       const pwdHash = await getSHA256Hash(pwd);
       if (pwdHash === ADMIN_PASSWORD_HASH) {
-        if (useFirebase) {
-          try {
-            // S'authentifier anonymement pour autoriser l'écriture sur Firestore
-            await firebase.auth().signInAnonymously();
-            console.log("Authentifié anonymement sur Firebase.");
-          } catch (err) {
-            console.error("Erreur Firebase Auth:", err);
-            showToast("Connexion cloud restreinte. Utilisation locale.", "error");
-          }
+        if (useFirebase && !(await ensureFirebaseAuth())) {
+          showToast("Connexion Firebase impossible. Activez l'authentification anonyme.", "error");
+          return;
         }
         sessionStorage.setItem('zynx_admin_logged', 'true');
         errorDiv.style.opacity = '0';
@@ -971,6 +971,20 @@
     document.head.appendChild(styleSheet);
 
     // DATABASE UTILS
+    async function ensureFirebaseAuth() {
+      if (!useFirebase) return true;
+      if (firebase.auth().currentUser) return true;
+
+      try {
+        await firebase.auth().signInAnonymously();
+        console.log("Authentifié anonymement sur Firebase.");
+        return true;
+      } catch (err) {
+        console.error("Erreur Firebase Auth:", err);
+        return false;
+      }
+    }
+
     function getProductsLocal() {
       let data = localStorage.getItem('zynx_products');
       if (!data) {
@@ -985,6 +999,10 @@
       let products = [];
 
       if (useFirebase) {
+        if (!(await ensureFirebaseAuth())) {
+          showToast("Impossible de charger les données cloud. Vérifiez Firebase Auth.", "error");
+          return;
+        }
         try {
           const snapshot = await db.collection('products').get();
           if (snapshot.empty) {
@@ -1212,6 +1230,10 @@
       errorDiv.style.display = 'none';
 
       if (useFirebase) {
+        if (!(await ensureFirebaseAuth())) {
+          showToast("Sauvegarde impossible. Activez l'authentification anonyme Firebase.", 'error');
+          return;
+        }
         try {
           const productData = {
             name,
@@ -1274,6 +1296,10 @@
     async function deleteProduct(id) {
       if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
         if (useFirebase) {
+          if (!(await ensureFirebaseAuth())) {
+            showToast("Suppression impossible. Activez l'authentification anonyme Firebase.", 'error');
+            return;
+          }
           try {
             await db.collection('products').doc(id).delete();
             showToast('Article supprimé du cloud !', 'error');
@@ -1320,6 +1346,10 @@
             let isValid = importedData.every(item => item.name && item.price);
             if (isValid) {
               if (useFirebase) {
+                if (!(await ensureFirebaseAuth())) {
+                  showToast("Importation impossible. Activez l'authentification anonyme Firebase.", 'error');
+                  return;
+                }
                 showToast('Importation cloud en cours...', 'info');
                 // Supprimer les anciens documents
                 const snapshot = await db.collection('products').get();
@@ -1363,6 +1393,10 @@
     async function confirmReset() {
       if (confirm('Voulez-vous réinitialiser tous les articles et restaurer les 4 produits d\'origine de ZYNX ?')) {
         if (useFirebase) {
+          if (!(await ensureFirebaseAuth())) {
+            showToast("Réinitialisation impossible. Activez l'authentification anonyme Firebase.", 'error');
+            return;
+          }
           try {
             showToast('Réinitialisation cloud en cours...', 'info');
             // Supprimer tous les articles existants
